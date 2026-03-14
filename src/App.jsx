@@ -22,6 +22,7 @@ import appLogo from "../assets/images/logo.png";
 
 const CONTACTS_STORAGE_KEY = "safewalk.contacts.v1";
 const DEVIATION_THRESHOLD_METERS = 90;
+const HONDURAS_DEFAULT_POSITION = { lat: 14.0818, lng: -87.2068 };
 
 const DEFAULT_CONTACTS = [
   { id: "c1", name: "Ana", phone: "+502 5555-1020" },
@@ -36,11 +37,11 @@ const ROUTE_OPTIONS = [
     riskScore: 22,
     eta: "14 min",
     points: [
-      { lat: 14.621, lng: -90.5131 },
-      { lat: 14.6218, lng: -90.5122 },
-      { lat: 14.6226, lng: -90.5112 },
-      { lat: 14.6234, lng: -90.5103 },
-      { lat: 14.624, lng: -90.5094 }
+      { lat: 14.0818, lng: -87.2068 },
+      { lat: 14.0826, lng: -87.2059 },
+      { lat: 14.0834, lng: -87.205 },
+      { lat: 14.0842, lng: -87.2041 },
+      { lat: 14.085, lng: -87.2032 }
     ]
   },
   {
@@ -49,11 +50,11 @@ const ROUTE_OPTIONS = [
     riskScore: 14,
     eta: "16 min",
     points: [
-      { lat: 14.621, lng: -90.5131 },
-      { lat: 14.6215, lng: -90.512 },
-      { lat: 14.622, lng: -90.5109 },
-      { lat: 14.623, lng: -90.51 },
-      { lat: 14.624, lng: -90.5094 }
+      { lat: 14.0818, lng: -87.2068 },
+      { lat: 14.0821, lng: -87.2057 },
+      { lat: 14.0828, lng: -87.2047 },
+      { lat: 14.0838, lng: -87.2039 },
+      { lat: 14.085, lng: -87.2032 }
     ]
   }
 ];
@@ -99,10 +100,10 @@ export default function App() {
 
   const [selectedRouteId, setSelectedRouteId] = useState(getBestRouteId);
   const [isSharing, setIsSharing] = useState(false);
-  const [trackingMode, setTrackingMode] = useState("simulada");
+  const [trackingMode, setTrackingMode] = useState("gps");
   const [stepIndex, setStepIndex] = useState(0);
   const [manualDrift, setManualDrift] = useState(false);
-  const [gpsPosition, setGpsPosition] = useState(null);
+  const [gpsPosition, setGpsPosition] = useState(HONDURAS_DEFAULT_POSITION);
   const [gpsError, setGpsError] = useState("");
   const [lastAlertType, setLastAlertType] = useState(null);
   const [eventLog, setEventLog] = useState([]);
@@ -247,6 +248,24 @@ export default function App() {
       setAuthBusy(false);
     }
   };
+
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      setGpsError("No se pudo obtener GPS, usando ubicacion por defecto en Honduras.");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setGpsPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setGpsError("");
+      },
+      () => {
+        setGpsError("No se concedio permiso de ubicacion, usando Honduras por defecto.");
+      },
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 30000 }
+    );
+  }, []);
 
   useEffect(() => {
     if (hasFirebaseConfig && auth) {
